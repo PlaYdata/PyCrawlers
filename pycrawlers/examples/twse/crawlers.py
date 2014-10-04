@@ -26,6 +26,6 @@ def get_stockID_twse(field):
     data_html = data.outerHtml()
     df = pd.read_html(data_html, infer_types=False)[0]
     temp_result = df[:][0]
-    result = np.array([stock_id for stock_id in temp_result if not stock_id == u"公司代號"])
+    result = np.array([stock_id for stock_id in temp_result if not stock_id == u"\u516c\u53f8\u4ee3\u865f"])
     return result
 
