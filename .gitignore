@@ -1,7 +1,13 @@
 
-dev_ipynbs/c3h3dev/.ipynb_checkpoints/
 
 *.db
+
+#######################
+# Eclipse Project Files
+####################### 
+.project
+.pydevproject
+
 
 # Mac Related Files
 .DS_Store
@@ -9,3 +15,11 @@ dev_ipynbs/c3h3dev/.ipynb_checkpoints/
 # Python Related Files
 *.pyc
 *.ipynb_checkpoints
+
+
+build/
+dist/
+pycrawler.egg-info/
+
+
+
