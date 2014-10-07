@@ -61,5 +61,6 @@ def get_dailyQuotes_twse(date):
         temp_df = pd.DataFrame(temp_rows[1:], columns = temp_rows[0])
         for colname in temp_df.columns:
             temp_df[colname] = temp_df[colname].map(lambda xx: xx.replace("=", "").replace(",", "").replace('"', "").replace("--", ""))
+        df_temp["Date"] = date
         df_list.append(temp_df)
     return df_list
