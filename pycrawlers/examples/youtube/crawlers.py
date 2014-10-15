@@ -113,7 +113,8 @@ class YoutubeChannelOpenData(object):
         return {"logo":playlist_data["feed"]["logo"]["$t"],
                 "title":playlist_data["feed"]["title"]["$t"],
                 "subtitle":playlist_data["feed"]["subtitle"]["$t"],
-                "author":playlist_data["feed"]["author"][0]["name"]["$t"]}    
+                "author":playlist_data["feed"]["author"][0]["name"]["$t"],
+                "updated":playlist_data["feed"]["updated"]["$t"]}    
             
     
     def get_all_playlist_all_video_ids(self):
