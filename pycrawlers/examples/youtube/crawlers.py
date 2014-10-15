@@ -8,6 +8,7 @@ except:
     import json
     
 
+
 def summary_one_upload_data_entry(one_upload_data_entry):
     return {"ytid":one_upload_data_entry["id"]["$t"].split("/")[-1],
             "title":one_upload_data_entry["title"]["$t"],
@@ -106,22 +107,33 @@ class YoutubeChannelOpenData(object):
         return all_video_ids_list
     
     
+    def get_one_playlist_meta_data(self, playlist_id):
+        playlist_data = self._get_data(self.playlist_url(playlist_id=playlist_id))
+        
+        return {"logo":playlist_data["feed"]["logo"]["$t"],
+                "title":playlist_data["feed"]["title"]["$t"],
+                "subtitle":playlist_data["feed"]["subtitle"]["$t"],
+                "author":playlist_data["feed"]["author"][0]["name"]["$t"]}    
+            
+    
     def get_all_playlist_all_video_ids(self):
         all_playlist_ids = self.get_all_playlist_ids()
         results = []
         for one_id in all_playlist_ids:
-            results.append({"playlist_id":one_id,
-                            "video_ids":self.get_one_playlist_all_video_ids(one_id)})
+            one_playlisy_data = {"playlist_id":one_id,
+                                 "video_ids":self.get_one_playlist_all_video_ids(one_id)}
+            one_playlisy_data.update(self.get_one_playlist_meta_data(one_id))
+            results.append(one_playlisy_data)
         
         return results
-    
+        
 
 def crawl_channel_uploads(channel_id):
     ytcrawler = YoutubeChannelOpenData(channel_id=channel_id)
     return ytcrawler.get_all_uploads()
 
 
-def crawl_channel_playlists_video_ids(channel_id):
+def crawl_channel_playlists_data(channel_id):
     ytcrawler = YoutubeChannelOpenData(channel_id=channel_id)
     return ytcrawler.get_all_playlist_all_video_ids()
 
