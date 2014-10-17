@@ -6,6 +6,7 @@ import re
 import numpy as np
 from pycrawlers.examples.twse.crawlers import get_stockID_twse
 import traceback
+import datetime
 
 
 def get_stock_major_data(stock_id):
@@ -26,18 +27,14 @@ def get_stock_major_data(stock_id):
     df["dateString"] = df["trader"].map(lambda xx: date)
     df = df[["dateString","stockId","trader","buy","sell","net"]]
     
-    return df
+    return {"stockId":stock_id,"date":date,"data":df}
     
 
 
-def get_all_stock_major_data():
+def get_all_stock_major_data(stock_ids = get_stockID_twse('sii').tolist() + get_stockID_twse('otc').tolist()):
     all_data_df_list = []
     error_stock_ids = []
     
-    twse_ids = get_stockID_twse('sii').tolist()
-    twotc_ids = get_stockID_twse('otc').tolist()
-    
-    stock_ids = twse_ids + twotc_ids
     #stock_ids = stock_ids[:10]
     
     while len(stock_ids) > 0:
@@ -45,8 +42,8 @@ def get_all_stock_major_data():
         one_stock_id = stock_ids.pop()
         
         try:
-            one_stock_df = get_stock_major_data(one_stock_id)
-            all_data_df_list.append(one_stock_df)
+            one_stock_data = get_stock_major_data(one_stock_id)
+            all_data_df_list.append(one_stock_data["data"])
             print "%s -- SUCCESS" % one_stock_id
         except Exception as e:
             print "%s -- ERROR" % one_stock_id
@@ -61,6 +58,51 @@ def get_all_stock_major_data():
                                     "traceback":traceback.format_exc()})
     
     return {"data":pd.concat(all_data_df_list), "error":error_stock_ids}
+
+
+
+def update_all_stock_major_data(data_collection, error_collection):
     
+    twse_ids = get_stockID_twse('sii').tolist()
+    twotc_ids = get_stockID_twse('otc').tolist()
+    
+    stock_ids = twse_ids + twotc_ids
+    #stock_ids = stock_ids[:10]
+    
+    counter = 0
+    len_stock_ids = len(stock_ids)
+    for one_stock_id in stock_ids:
+        print "~~~~~~~~~~~~~~~~~~~~~~~~"
+        print "%s/%s = " % (counter,len_stock_ids)
+        counter = counter + 1
+        #one_stock_id = stock_ids.pop()
+        
+        try:
+            one_stock_data = get_stock_major_data(one_stock_id)
+            one_stock_data_in_db = data_collection.find({"stockId":one_stock_data["stockId"],"dateString":one_stock_data["date"]}).count()>0
+            if not one_stock_data_in_db:
+                data_collection.insert(one_stock_data["data"].to_dict(outtype="record"))
+                print "%s -- SUCCESS: insert into db " % one_stock_id
+            else:
+                print "%s -- SUCCESS: already in db " % one_stock_id
+                
+            
+            
+        except Exception as e:
+            print "%s -- ERROR" % one_stock_id
+            print e
+            print traceback.format_exc()
+            #print e.__dict__
+            #print e.message
+            #print pickle.dumps(e.request)
+            error_collection.insert({"stockId":one_stock_id,
+                                    "message":e.message,
+                                    "traceback":traceback.format_exc(),
+                                    "time":datetime.datetime.now()})
+            
+    
+    
+    
+            
             
     
