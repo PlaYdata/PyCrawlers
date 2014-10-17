@@ -89,16 +89,22 @@ def update_all_stock_major_data(data_collection, error_collection):
             
             
         except Exception as e:
+            
             print "%s -- ERROR" % one_stock_id
             print e
             print traceback.format_exc()
             #print e.__dict__
             #print e.message
             #print pickle.dumps(e.request)
-            error_collection.insert({"stockId":one_stock_id,
-                                    "message":e.message,
-                                    "traceback":traceback.format_exc(),
-                                    "time":datetime.datetime.now()})
+            try:
+                error_collection.insert({"stockId":one_stock_id,
+                                         "message":e.message,
+                                         "traceback":traceback.format_exc(),
+                                         "time":datetime.datetime.now()})
+            except:
+                error_collection.insert({"stockId":one_stock_id,
+                                         "traceback":traceback.format_exc(),
+                                         "time":datetime.datetime.now()})
             
     
     
