@@ -27,6 +27,10 @@ def get_stock_major_data(stock_id):
     df["dateString"] = df["trader"].map(lambda xx: date)
     df = df[["dateString","stockId","trader","buy","sell","net"]]
     
+    df["buy"] = df["buy"].map(lambda xx:int(xx))
+    df["sell"] = df["sell"].map(lambda xx:int(xx))
+    df["net"] = df["net"].map(lambda xx:int(xx))
+    
     return {"stockId":stock_id,"date":date,"data":df}
     
 
