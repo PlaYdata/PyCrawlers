@@ -7,6 +7,9 @@ try:
 except:
     import json
     
+from pymongo import MongoClient
+
+
 
 
 def summary_one_upload_data_entry(one_upload_data_entry):
@@ -138,5 +141,63 @@ def crawl_channel_playlists_data(channel_id):
     ytcrawler = YoutubeChannelOpenData(channel_id=channel_id)
     return ytcrawler.get_all_playlist_all_video_ids()
 
+
+
+
+def update_youtube_channel_data_to_mongo(one_channel_id, yt_video_collection=None, 
+                                        yt_playlist_collection=None, yt_channel_collection=None):
+    
+    def set_video_mongo_data(one_video_data):
+        if "ytid" in one_video_data.keys():
+            one_video_data["_id"] = one_video_data["ytid"]
+            del one_video_data["ytid"]
+            
+        one_video_data["channelId"] = one_channel_id
+        
+        return one_video_data
+    
+    def set_playlist_mongo_data(one_playlist_data):
+        if "playlist_id" in one_playlist_data.keys():
+            one_playlist_data["_id"] = one_playlist_data["playlist_id"]
+            del one_playlist_data["playlist_id"]
+        
+        if "video_ids" in one_playlist_data.keys():
+            one_playlist_data["videoIds"] = one_playlist_data["video_ids"]
+            del one_playlist_data["video_ids"]
+        
+        one_playlist_data["channelId"] = one_channel_id
+    
+        return one_playlist_data
+    
+    if yt_video_collection==None:
+        mcli = MongoClient()
+        yt_video_collection = mcli.videomap.ytVideos
+    
+    if yt_playlist_collection==None:
+        mcli = MongoClient()
+        yt_playlist_collection = mcli.videomap.ytPlaylists
+    
+    if yt_channel_collection==None:
+        mcli = MongoClient()
+        yt_channel_collection = mcli.videomap.ytChannels
+    
+    if yt_channel_collection.find({"_id":one_channel_id}).count() == 0:
+        yt_channel_collection.insert({"_id":one_channel_id})
+        
+    
+    video_data = crawl_channel_uploads(one_channel_id)
+    playlist_data = crawl_channel_playlists_data(one_channel_id)
+    
+    video_data = map(set_video_mongo_data, video_data)
+    playlist_data = map(set_playlist_mongo_data, playlist_data)
+    
+    video_data_ids = map(lambda xx:xx["_id"], video_data)
+    playlist_data_ids = map(lambda xx:xx["_id"], playlist_data)
+    
+    yt_video_collection.remove({"_id":{"$in":video_data_ids}})
+    yt_playlist_collection.remove({"_id":{"$in":playlist_data_ids}})
+    
+    yt_video_collection.insert(video_data)
+    yt_playlist_collection.insert(playlist_data)
 
 
